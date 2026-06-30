@@ -24,9 +24,7 @@ Thumbs.db
 Desktop.ini
 
 # CampusPool Documentation / Specs (DO NOT PUSH TO GITHUB)
-campuspool_antigravity_master_v2.md
-campuspool_v1_report.md
-campuspool*.md
+/docs 
 
 # Logs and diagnostic reports
 logs
