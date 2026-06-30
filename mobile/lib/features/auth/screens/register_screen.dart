@@ -32,19 +32,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authProvider.notifier).register(
+    await ref.read(authNotifierProvider.notifier).register(
       _emailController.text.trim(),
       _passwordController.text,
       _nameController.text.trim(),
     );
-    if (mounted && ref.read(authProvider).token != null) {
+    if (mounted && ref.read(authNotifierProvider).value?.token != null) {
       context.go('/');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(authProvider);
+    final authAsync = ref.watch(authNotifierProvider);
+    final auth = authAsync.value ?? const AuthState();
 
     return Scaffold(
       backgroundColor: AppColors.surface0,
@@ -74,7 +75,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppConstants.spacing3xl),
 
-                Text('SIGN UP', style: AppTextStyles.displayLg),
+                const Text('SIGN UP', style: AppTextStyles.displayLg),
                 const SizedBox(height: AppConstants.spacingSm),
                 Text(
                   'Join the CampusPool network.',

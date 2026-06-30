@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
@@ -9,9 +8,12 @@ import '../../features/commute/screens/create_commute_screen.dart';
 import '../../features/commute/screens/commute_detail_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/map/screens/location_picker_screen.dart';
+import '../../features/commute/screens/suggestions_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final authState = ref.watch(authNotifierProvider).value ?? const AuthState();
 
   return GoRouter(
     initialLocation: '/login',
@@ -41,6 +43,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
+      // Location picker — returns PickedLocation via pop()
+      GoRoute(
+        path: '/location-picker',
+        builder: (_, __) => const LocationPickerScreen(),
+      ),
+
+      // Suggestions
+      GoRoute(path: '/suggestions', builder: (_, __) => const SuggestionsScreen()),
+
       // Chat
       GoRoute(
         path: '/chat/:conversationId',
@@ -51,6 +62,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Profile
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+
+      // Notifications
+      GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
     ],
   );
 });

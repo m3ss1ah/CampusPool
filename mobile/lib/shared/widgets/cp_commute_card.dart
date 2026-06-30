@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_text_styles.dart';
-import 'cp_transit_badge.dart';
 
 /// Commute list card — route letter, source→dest, metadata.
 class CpCommuteCard extends StatelessWidget {
@@ -95,7 +94,7 @@ class CpCommuteCard extends StatelessWidget {
                             style: AppTextStyles.label.copyWith(color: AppColors.textTertiary),
                           ),
                           const SizedBox(width: 8),
-                          Text('·', style: AppTextStyles.label),
+                          const Text('·', style: AppTextStyles.label),
                           const SizedBox(width: 8),
                           Text(
                             '$availableSeats seats',

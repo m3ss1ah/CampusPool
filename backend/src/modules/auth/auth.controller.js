@@ -1,53 +1,54 @@
-// src/modules/auth/auth.controller.js
 const authService = require('./auth.service');
+const { signToken } = require('../../utils/jwt');
+const { success, error } = require('../../utils/response');
+const bcrypt = require('bcryptjs');
 
-class AuthController {
-  async register(req, res) {
-    try {
-      const { email, password, full_name } = req.body;
-      
-      const result = await authService.register({ email, password, full_name });
-      
-      res.status(201).json({
-        status: 'success',
-        data: result
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: 'error',
-        message: error.message || 'Internal Server Error'
-      });
-    }
-  }
-
-  async login(req, res) {
-    try {
-      const { email, password } = req.body;
-
-      const result = await authService.login({ email, password });
-
-      res.status(200).json({
-        status: 'success',
-        data: result
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: 'error',
-        message: error.message || 'Internal Server Error'
-      });
-    }
-  }
-
-  // Example of a protected controller method
-  async getMe(req, res) {
-    // req.user is populated by the protect middleware
-    res.status(200).json({
-      status: 'success',
-      data: {
-        user: req.user
-      }
+const register = async (req, res, next) => {
+  try {
+    const user = await authService.registerUser(req.body);
+    const token = signToken({ id: user.id });
+    return res.status(201).json({
+      success: true,
+      data: { user, token },
+      message: 'Account created successfully',
     });
+  } catch (err) {
+    next(err);
   }
-}
+};
 
-module.exports = new AuthController();
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await authService.getUserByEmail(email);
+    
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return error(res, 'Invalid credentials', 'UNAUTHORIZED', 401);
+    }
+    
+    const token = signToken({ id: user.id });
+    
+    // Remove password_hash before returning
+    delete user.password_hash;
+    
+    return success(res, { user, token }, 'Login successful');
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateFcmToken = async (req, res, next) => {
+  try {
+    const { fcm_token } = req.body;
+    await authService.updateFcmToken(req.user.id, fcm_token);
+    return success(res, null, 'FCM token updated');
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  updateFcmToken,
+};

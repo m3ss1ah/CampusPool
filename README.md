@@ -32,11 +32,11 @@ This repository is organized as a monorepo consisting of:
 
 ## 🌟 Core Features
 
-*   🗺️ **Interactive Geolocation Map**: Real-time render of available commutes plotted within a student's search radius using OpenStreetMap custom vector tiles, optimized using offline tile caching (`flutter_map_tile_caching`).
-*   🔒 **Enterprise Coordinate Privacy**: Dual-tier location masking where precise source pickup locations are completely hidden (rounded to ~500m precision) for public browsers, and only revealed to accepted riders.
-*   ⚡ **Intelligent Ride Search & Filtering**: State-driven commute discovery filtered by vehicle restrictions (Bikes, Autos, Sedan Cars, SUVs), travel times, and fuzzy-matching destination aliases.
-*   💬 **Instant Socket Chat**: Real-time communication channels opened automatically between accepted passengers and ride creators using cursor-based paginated chat lists.
-*   🔔 **Push Notification Infrastructure**: Background/foreground alerts for ride requests, confirmations, cancellations, and messages powered by Firebase Cloud Messaging (FCM).
+*   🗺️ **Interactive Geolocation Map**: Real-time render of available commutes plotted within a student's search radius using OpenStreetMap custom vector tiles. Integrates **OSRM Routing** to dynamically draw accurate driving `PolylineLayer` paths on the map.
+*   🔒 **Enterprise Coordinate Privacy & Trust**: Strict `.edu` email domain verification ensures a secure student-only network. Dual-tier location masking completely hides precise source locations (rounded to ~500m precision) for public browsers, revealing them only to accepted riders.
+*   ⚡ **Advanced PostGIS Matching**: Intelligent ride search powered by PostgreSQL and PostGIS `ST_DWithin` and `ST_Distance` functions for highly accurate geospatial matching.
+*   💬 **Instant Socket Chat & Offline Caching**: Real-time communication channels opened automatically between accepted passengers and ride creators. Uses a resilient **offline-first caching architecture** via `Hive`, ensuring instant load times even on spotty campus Wi-Fi.
+*   🔔 **Push Notification Infrastructure**: Background/foreground alerts for new messages and ride requests powered by the Firebase Admin SDK and Firebase Cloud Messaging (FCM).
 *   🚘 **Intelligent Seat constraints**: Structured vehicle categories enforcing strict seat constraints:
     *   **Bike/2-Wheeler**: Max 1 seat.
     *   **Auto-Rickshaw**: Max 2 seats.
@@ -414,14 +414,15 @@ All responses return a structured JSON body matching this format:
 
 ---
 
-## 🛠️ Version 1.1 Action Plan & Issue Resolution
+## 🚀 Interview-Ready Project Enhancements
 
-The following refinements are currently being implemented to ensure a production-grade experience:
+This project has been fully upgraded to a production-ready state with the following advanced features implemented:
 
-1.  **Map rendering optimizations**: We resolved the map tile rendering white screen startup bug (`ClientException`) by implementing `flutter_map_tile_caching` and fallback tile provider chains.
-2.  **Offer Ride Screen Overhaul**: Replacing manual coordinates with continuous text lookup suggestions mapped to localized geographical coordinate systems. We've also replaced basic date inputs with scrollable Material-style dial time pickers.
-3.  **Visual Map feedback**: Your active commutes are highlighted in **Red** on the map, while available commutes from other users are highlighted in standard style profiles.
-4.  **Hardware back gesture integration**: Fixed gesture navigation warnings by adding predictive back support (`android:enableOnBackInvokedCallback="true"`) to the Android target.
+1.  **Security & Trust**: Integrated strict `.edu` email domain validation on registration to enforce a verified student-only network.
+2.  **Visual Routing**: Implemented dynamic map Polylines by fetching coordinate geometries from the public OSRM routing API to visually trace commutes.
+3.  **Performant Geospatial Matching**: Migrated from basic Haversine distance calculations to native **PostGIS `ST_DWithin`** functions, allowing the database to intelligently match overlapping commute trajectories.
+4.  **Offline-First Resilience**: Configured a `Hive` NoSQL local database to aggressively cache conversations and messages, providing instantaneous hydration even without network connectivity.
+5.  **Background Push Capabilities**: Initialized the `firebase-admin` SDK on the Node.js backend to fire seamless FCM background notifications to target devices.
 
 ---
 *Created with 💙 by CampusPool developers. Let's make campus commutes collaborative, secure, and sustainable.*

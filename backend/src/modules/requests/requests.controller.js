@@ -1,58 +1,65 @@
 // src/modules/requests/requests.controller.js
 const requestsService = require('./requests.service');
+const { success, error } = require('../../utils/response');
 
-class RequestsController {
-  async createRequest(req, res) {
-    try {
-      const request = await requestsService.createRequest(req.user.id, req.body.commute_id, req.body.message);
-      res.status(201).json({
-        status: 'success',
-        message: 'Ride request sent',
-        data: { request }
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({ status: 'error', message: error.message || 'Server Error' });
+const createRequest = async (req, res, next) => {
+  try {
+    const { commute_id, message } = req.body;
+    if (!commute_id) {
+      return error(res, 'commute_id is required', 'VALIDATION_ERROR', 400);
     }
-  }
-
-  async getMyRequests(req, res) {
-    try {
-      const requests = await requestsService.getMyRequests(req.user.id);
-      res.status(200).json({
-        status: 'success',
-        results: requests.length,
-        data: { requests }
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({ status: 'error', message: error.message || 'Server Error' });
+    const request = await requestsService.createRequest(req.user.id, commute_id, message);
+    return res.status(201).json({ success: true, data: request, message: 'Seat request sent' });
+  } catch (err) {
+    if (err.statusCode) {
+      return error(res, err.message, 'BAD_REQUEST', err.statusCode);
     }
+    next(err);
   }
+};
 
-  async getRequestsForCommute(req, res) {
-    try {
-      const requests = await requestsService.getRequestsForCommute(req.user.id, req.params.commuteId);
-      res.status(200).json({
-        status: 'success',
-        results: requests.length,
-        data: { requests }
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({ status: 'error', message: error.message || 'Server Error' });
+const respondToRequest = async (req, res, next) => {
+  try {
+    const result = await requestsService.updateRequestStatus(
+      req.user.id, req.params.id, req.body.status
+    );
+    return success(res, result, `Request ${req.body.status}`);
+  } catch (err) {
+    if (err.statusCode) {
+      return error(res, err.message, 'BAD_REQUEST', err.statusCode);
     }
+    next(err);
   }
+};
 
-  async updateRequestStatus(req, res) {
-    try {
-      const request = await requestsService.updateRequestStatus(req.user.id, req.params.id, req.body.status);
-      res.status(200).json({
-        status: 'success',
-        message: `Request ${req.body.status}`,
-        data: { request }
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({ status: 'error', message: error.message || 'Server Error' });
+const cancelRequest = async (req, res, next) => {
+  try {
+    const result = await requestsService.cancelRequest(req.user.id, req.params.id);
+    return success(res, result, 'Request cancelled');
+  } catch (err) {
+    if (err.statusCode) {
+      return error(res, err.message, 'BAD_REQUEST', err.statusCode);
     }
+    next(err);
   }
-}
+};
 
-module.exports = new RequestsController();
+const getIncoming = async (req, res, next) => {
+  try {
+    const requests = await requestsService.getIncomingRequests(req.user.id);
+    return success(res, requests, 'Incoming requests fetched');
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getOutgoing = async (req, res, next) => {
+  try {
+    const requests = await requestsService.getMyRequests(req.user.id);
+    return success(res, requests, 'Outgoing requests fetched');
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createRequest, respondToRequest, cancelRequest, getIncoming, getOutgoing };

@@ -30,18 +30,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authProvider.notifier).login(
+    await ref.read(authNotifierProvider.notifier).login(
       _emailController.text.trim(),
       _passwordController.text,
     );
-    if (mounted && ref.read(authProvider).token != null) {
+    if (mounted && ref.read(authNotifierProvider).value?.token != null) {
       context.go('/');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(authProvider);
+    final authAsync = ref.watch(authNotifierProvider);
+    final auth = authAsync.value ?? const AuthState();
 
     return Scaffold(
       backgroundColor: AppColors.surface0,
@@ -67,7 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: AppConstants.spacing3xl),
 
                 // Title
-                Text('LOG IN', style: AppTextStyles.displayLg),
+                const Text('LOG IN', style: AppTextStyles.displayLg),
                 const SizedBox(height: AppConstants.spacingSm),
                 Text(
                   'Access the CampusPool network.',
@@ -128,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('New here? ', style: AppTextStyles.label),
+                    const Text('New here? ', style: AppTextStyles.label),
                     GestureDetector(
                       onTap: () => context.go('/register'),
                       child: Text(

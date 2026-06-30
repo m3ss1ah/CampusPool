@@ -1,63 +1,49 @@
-// src/modules/users/users.service.js
-const { pool } = require('../../config/db');
+const db = require('../../config/db');
 
-class UsersService {
-  /**
-   * Get user profile by ID
-   */
-  async getProfile(userId) {
-    const result = await pool.query(
-      `SELECT id, full_name, email, phone, college, profile_pic_url, has_vehicle, vehicle_type, total_rides_offered, total_rides_joined, created_at
-       FROM users 
-       WHERE id = $1`,
-      [userId]
-    );
+const getProfile = async (userId) => {
+  const query = `
+    SELECT id, full_name, email, phone, college, profile_pic_url, 
+           has_vehicle, vehicle_type, total_rides_offered, 
+           total_rides_joined, created_at
+    FROM users 
+    WHERE id = $1
+  `;
+  const { rows } = await db.query(query, [userId]);
+  return rows[0];
+};
 
-    if (result.rows.length === 0) {
-      const error = new Error('User not found');
-      error.statusCode = 404;
-      throw error;
-    }
+const updateProfile = async (userId, updates) => {
+  const { full_name, phone, college, has_vehicle, vehicle_type, profile_pic_url } = updates;
+  
+  // Build dynamic update query
+  const fields = [];
+  const values = [];
+  let index = 1;
 
-    return result.rows[0];
-  }
+  if (full_name !== undefined) { fields.push(`full_name = $${index++}`); values.push(full_name); }
+  if (phone !== undefined) { fields.push(`phone = $${index++}`); values.push(phone); }
+  if (college !== undefined) { fields.push(`college = $${index++}`); values.push(college); }
+  if (has_vehicle !== undefined) { fields.push(`has_vehicle = $${index++}`); values.push(has_vehicle); }
+  if (vehicle_type !== undefined) { fields.push(`vehicle_type = $${index++}`); values.push(vehicle_type); }
+  if (profile_pic_url !== undefined) { fields.push(`profile_pic_url = $${index++}`); values.push(profile_pic_url); }
 
-  /**
-   * Update user profile
-   */
-  async updateProfile(userId, updateData) {
-    const fields = [];
-    const values = [];
-    let idx = 1;
+  if (fields.length === 0) return await getProfile(userId);
 
-    // Allowed update fields
-    const allowedFields = ['full_name', 'phone', 'college', 'has_vehicle', 'vehicle_type', 'fcm_token'];
+  values.push(userId);
+  const query = `
+    UPDATE users 
+    SET ${fields.join(', ')}, updated_at = NOW() 
+    WHERE id = $${index} 
+    RETURNING id, full_name, email, phone, college, profile_pic_url, 
+              has_vehicle, vehicle_type, total_rides_offered, 
+              total_rides_joined, created_at
+  `;
+  
+  const { rows } = await db.query(query, values);
+  return rows[0];
+};
 
-    for (const field of allowedFields) {
-      if (updateData[field] !== undefined) {
-        fields.push(`${field} = $${idx}`);
-        values.push(updateData[field]);
-        idx++;
-      }
-    }
-
-    if (fields.length === 0) {
-      const error = new Error('No valid fields to update');
-      error.statusCode = 400;
-      throw error;
-    }
-
-    values.push(userId);
-    const result = await pool.query(
-      `UPDATE users 
-       SET ${fields.join(', ')}, updated_at = NOW() 
-       WHERE id = $${idx}
-       RETURNING id, full_name, email, phone, college, profile_pic_url, has_vehicle, vehicle_type, updated_at`,
-      values
-    );
-
-    return result.rows[0];
-  }
-}
-
-module.exports = new UsersService();
+module.exports = {
+  getProfile,
+  updateProfile,
+};

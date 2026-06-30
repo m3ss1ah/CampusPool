@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../core/constants/app_text_styles.dart';
 import '../../map/screens/map_screen.dart';
-import '../../commute/screens/discover_screen.dart';
+import '../../commute/screens/suggestions_screen.dart';
+import '../../commute/screens/my_commutes_screen.dart';
 import '../../chat/screens/conversations_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 
@@ -21,7 +20,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   final _screens = const [
     MapScreen(),
-    DiscoverScreen(),
+    SuggestionsScreen(),
+    MyCommutesScreen(),
     ConversationsScreen(),
     ProfileScreen(),
   ];
@@ -42,7 +42,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTap: (i) => setState(() => _currentIndex = i),
           items: [
             _navItem(Icons.map_outlined, Icons.map, 'MAP'),
-            _navItem(Icons.explore_outlined, Icons.explore, 'RIDES'),
+            _navItem(Icons.search_outlined, Icons.search, 'FIND'),
+            _navItem(Icons.directions_car_outlined, Icons.directions_car, 'RIDES'),
             _navItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'INBOX'),
             _navItem(Icons.person_outline, Icons.person, 'ME'),
           ],

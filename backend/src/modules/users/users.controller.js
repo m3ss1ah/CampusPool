@@ -1,37 +1,28 @@
-// src/modules/users/users.controller.js
 const usersService = require('./users.service');
+const { success, error } = require('../../utils/response');
 
-class UsersController {
-  async getProfile(req, res) {
-    try {
-      const user = await usersService.getProfile(req.user.id);
-      res.status(200).json({
-        status: 'success',
-        data: { user }
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: 'error',
-        message: error.message || 'Internal Server Error'
-      });
+const getProfile = async (req, res, next) => {
+  try {
+    const user = await usersService.getProfile(req.user.id);
+    if (!user) {
+      return error(res, 'User not found', 'NOT_FOUND', 404);
     }
+    return success(res, user, 'Profile fetched successfully');
+  } catch (err) {
+    next(err);
   }
+};
 
-  async updateProfile(req, res) {
-    try {
-      const updatedUser = await usersService.updateProfile(req.user.id, req.body);
-      res.status(200).json({
-        status: 'success',
-        message: 'Profile updated successfully',
-        data: { user: updatedUser }
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: 'error',
-        message: error.message || 'Internal Server Error'
-      });
-    }
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await usersService.updateProfile(req.user.id, req.body);
+    return success(res, user, 'Profile updated successfully');
+  } catch (err) {
+    next(err);
   }
-}
+};
 
-module.exports = new UsersController();
+module.exports = {
+  getProfile,
+  updateProfile,
+};

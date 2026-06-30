@@ -3,7 +3,7 @@ class AppConstants {
   AppConstants._();
 
   // ── API ──
-  static const apiBaseUrl = 'http://192.168.0.107:5000/api';
+  static const apiBaseUrl = 'http://10.10.123.254:5000/api/';
 
   // ── Spacing (4px base grid) ──
   static const double spacingXs = 4;

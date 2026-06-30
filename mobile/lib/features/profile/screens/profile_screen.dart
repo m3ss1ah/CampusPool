@@ -6,7 +6,6 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../shared/widgets/cp_avatar.dart';
 import '../../../shared/widgets/cp_button.dart';
-import '../../../shared/widgets/cp_transit_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -14,7 +13,8 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authProvider);
+    final authAsync = ref.watch(authNotifierProvider);
+    final auth = authAsync.value ?? const AuthState();
     final user = auth.user;
     final name = user?['full_name'] ?? 'Rider';
 
@@ -62,13 +62,23 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppConstants.spacing3xl),
 
-            // Logout
+            // Actions
+            CpButton(
+              label: 'Edit Profile',
+              icon: Icons.edit,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Edit Profile coming soon!', style: AppTextStyles.body)),
+                );
+              },
+            ),
+            const SizedBox(height: AppConstants.spacingLg),
             CpButton(
               label: 'Log Out',
               variant: CpButtonVariant.outlined,
               icon: Icons.logout,
               onPressed: () {
-                ref.read(authProvider.notifier).logout();
+                ref.read(authNotifierProvider.notifier).logout();
                 context.go('/login');
               },
             ),

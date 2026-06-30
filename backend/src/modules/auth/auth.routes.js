@@ -1,30 +1,31 @@
-// src/modules/auth/auth.routes.js
-const express = require('express');
+const router = require('express').Router();
 const { body } = require('express-validator');
 const authController = require('./auth.controller');
-const { validate } = require('../../middleware/validation.middleware');
-const { protect } = require('../../middleware/auth.middleware');
+const { validate } = require('../../middleware/validate.middleware');
+const { authenticate } = require('../../middleware/auth.middleware');
 
-const router = express.Router();
-
-// Validation Rules
 const registerValidation = [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-  body('full_name').notEmpty().withMessage('Full name is required')
+  body('full_name').notEmpty().withMessage('Full name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('phone').optional().isString(),
+  body('college').optional().isString(),
+  validate
 ];
 
 const loginValidation = [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').notEmpty().withMessage('Password is required'),
+  validate
 ];
 
-// Public Routes
-router.post('/register', registerValidation, validate, authController.register);
-router.post('/login', loginValidation, validate, authController.login);
+const fcmValidation = [
+  body('fcm_token').notEmpty().withMessage('FCM token is required'),
+  validate
+];
 
-// Protected Routes
-// Example: Get current logged-in user profile
-router.get('/me', protect, authController.getMe);
+router.post('/register', registerValidation, authController.register);
+router.post('/login', loginValidation, authController.login);
+router.patch('/fcm-token', authenticate, fcmValidation, authController.updateFcmToken);
 
 module.exports = router;

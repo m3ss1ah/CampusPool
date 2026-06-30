@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_constants.dart';
 
 /// CampusPool text field — brutalist design with yellow focus border.
 class CpTextField extends StatelessWidget {
@@ -17,6 +16,7 @@ class CpTextField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
 
   const CpTextField({
     super.key,
@@ -32,6 +32,7 @@ class CpTextField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.focusNode,
+    this.onChanged,
   });
 
   @override
@@ -62,6 +63,7 @@ class CpTextField extends StatelessWidget {
           readOnly: readOnly,
           onTap: onTap,
           focusNode: focusNode,
+          onChanged: onChanged,
           style: const TextStyle(
             fontFamily: 'SpaceGrotesk',
             fontSize: 15,

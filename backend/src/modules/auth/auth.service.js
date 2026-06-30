@@ -1,63 +1,36 @@
-// src/modules/auth/auth.service.js
-const { pool } = require('../../config/db');
-const { hashPassword, comparePassword } = require('../../utils/hash');
-const { generateToken } = require('../../utils/jwt');
+const bcrypt = require('bcryptjs');
+const db = require('../../config/db');
 
-class AuthService {
-  /**
-   * Register a new user
-   */
-  async register({ email, password, full_name }) {
-    // 1. Check if user already exists
-    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existingUser.rows.length > 0) {
-      const error = new Error('Email is already registered');
-      error.statusCode = 400;
-      throw error;
-    }
-
-    // 2. Hash password
-    const hashed = await hashPassword(password);
-
-    // 3. Insert into DB
-    const result = await pool.query(
-      `INSERT INTO users (email, password_hash, full_name)
-       VALUES ($1, $2, $3)
-       RETURNING id, email, full_name, created_at`,
-      [email, hashed, full_name]
-    );
-
-    const user = result.rows[0];
-
-    // 4. Generate JWT
-    const token = generateToken(user.id);
-
-    return { user, token };
+const registerUser = async ({ full_name, email, password, phone, college }) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu$/i;
+  if (!emailRegex.test(email)) {
+    throw new Error('Registration is restricted to .edu email addresses only.');
   }
 
-  /**
-   * Login a user
-   */
-  async login({ email, password }) {
-    // 1. Find user by email
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0];
+  const password_hash = await bcrypt.hash(password, 10);
+  const query = `
+    INSERT INTO users (full_name, email, password_hash, phone, college)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, full_name, email, phone, college, has_vehicle, vehicle_type, created_at;
+  `;
+  const values = [full_name, email.toLowerCase(), password_hash, phone, college];
+  const { rows } = await db.query(query, values);
+  return rows[0];
+};
 
-    // 2. Verify user exists and password matches
-    if (!user || !(await comparePassword(password, user.password_hash))) {
-      const error = new Error('Invalid email or password');
-      error.statusCode = 401;
-      throw error;
-    }
+const getUserByEmail = async (email) => {
+  const query = `SELECT * FROM users WHERE email = $1`;
+  const { rows } = await db.query(query, [email.toLowerCase()]);
+  return rows[0];
+};
 
-    // 3. Generate JWT
-    const token = generateToken(user.id);
+const updateFcmToken = async (userId, fcmToken) => {
+  const query = `UPDATE users SET fcm_token = $1 WHERE id = $2`;
+  await db.query(query, [fcmToken, userId]);
+};
 
-    // 4. Return user info (excluding password hash)
-    const { password_hash, ...userWithoutPassword } = user;
-
-    return { user: userWithoutPassword, token };
-  }
-}
-
-module.exports = new AuthService();
+module.exports = {
+  registerUser,
+  getUserByEmail,
+  updateFcmToken,
+};
